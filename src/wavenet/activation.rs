@@ -8,10 +8,15 @@ use crate::error::Error;
 // Rational approximation of tanh:
 // f(x) = x(A + A|x| + (B + C|x|)x^2) / (D + (D + x^2)|x + E·x|x||)
 // Coefficients are curve-fitted; not standard constants.
+#[allow(clippy::excessive_precision)]
 const FAST_TANH_A: f32 = 2.45550750702956;
+#[allow(clippy::excessive_precision)]
 const FAST_TANH_B: f32 = 0.893229853513558;
+#[allow(clippy::excessive_precision)]
 const FAST_TANH_C: f32 = 0.821226666969744;
+#[allow(clippy::excessive_precision)]
 const FAST_TANH_D: f32 = 2.44506634652299;
+#[allow(clippy::excessive_precision)]
 const FAST_TANH_E: f32 = 0.814642734961073;
 
 /// Pointwise activation applied after the dilated conv + mix-in.
@@ -104,13 +109,7 @@ fn swish(x: f32) -> f32 {
 #[inline]
 fn hardswish(x: f32) -> f32 {
     let t = x + 3.0;
-    let clamped = if t < 0.0 {
-        0.0
-    } else if t > 6.0 {
-        6.0
-    } else {
-        t
-    };
+    let clamped = t.clamp(0.0, 6.0);
     x * clamped * (1.0 / 6.0)
 }
 
@@ -119,8 +118,8 @@ fn fast_tanh(x: f32) -> f32 {
     let ax = x.abs();
     let x2 = x * x;
 
-    return (x * (FAST_TANH_A + FAST_TANH_A * ax + (FAST_TANH_B + FAST_TANH_C * ax) * x2))
-        / (FAST_TANH_D + (FAST_TANH_D + x2) * (x + FAST_TANH_E * x * ax).abs());
+    (x * (FAST_TANH_A + FAST_TANH_A * ax + (FAST_TANH_B + FAST_TANH_C * ax) * x2))
+        / (FAST_TANH_D + (FAST_TANH_D + x2) * (x + FAST_TANH_E * x * ax).abs())
 }
 
 #[cfg(test)]
